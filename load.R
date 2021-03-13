@@ -26,18 +26,6 @@ sensor_day_unoccupied_starts <- room_occupancies_raw %>%
   mutate(timestamp = as_datetime(date)) %>%
   mutate(occupied_status = "Unoccupied (Filler Data)")
 
-room_occupancies_raw %>%
-  filter(sensor_id == "[00AA-FFAC]", date == "2020-02-10") %>%
-  mutate(
-    timestamp = paste0(date, timestamp),
-    timestamp = if_else(
-      hour(timestamp) == 23 & minute(timestamp) == 59,
-      floor_date(ymd_hms(timestamp, tz = "UTC"), "1 minute"), ## round DOWN (because it's an 23:59)
-      round_date(ymd_hms(timestamp, tz = "UTC"), "1 minute") ## round timestamps to nearest minute
-    )
-  ) %>%
-  slice(60:70)
-
 room_occupancy_events <- room_occupancies_raw %>%
   mutate(
     timestamp = paste0(date, timestamp),
