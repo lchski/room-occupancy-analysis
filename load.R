@@ -20,11 +20,11 @@ room_occupancies_raw <- read_excel("data/source/ODFP_Meeting-Rooms.xlsm") %>%
   )
 
 ## Get a list of sensor days (one row per sensor per day)
-## These are the dummy "Unoccupied" items that start each day
+## These are the dummy "Unoccupied (Filler Data)" items that start each day
 sensor_day_unoccupied_starts <- room_occupancies_raw %>%
   distinct(sensor_id, date) %>%
   mutate(timestamp = as_datetime(date)) %>%
-  mutate(occupied_status = "Unoccupied")
+  mutate(occupied_status = "Unoccupied (Filler Data)")
 
 room_occupancy_minutes <- room_occupancies_raw %>%
   mutate(
@@ -59,6 +59,9 @@ room_occupancy_minutes <- room_occupancies_raw %>%
 
 room_occupancy_minutes %>%
   summarize(count = n())
+
+zzz %>%
+  filter(next_timestamp < timestamp)
 
 
 
