@@ -26,9 +26,26 @@ sensor_day_unoccupied_starts <- room_occupancies_raw %>%
   mutate(timestamp = as_datetime(date)) %>%
   mutate(occupied_status = "Unoccupied (Filler Data)")
 
-room_occupancy_minutes <- room_occupancies_raw %>%
+room_occupancies_raw %>%
+  filter(sensor_id == "[00AA-FFAC]", date == "2020-02-10") %>%
   mutate(
-    timestamp = round_date(ymd_hms(paste0(date, timestamp), tz = "UTC"), "1 minute"), ## round timestamps to nearest minute
+    timestamp = paste0(date, timestamp),
+    timestamp = if_else(
+      hour(timestamp) == 23 & minute(timestamp) == 59,
+      floor_date(ymd_hms(timestamp, tz = "UTC"), "1 minute"), ## round DOWN (because it's an 23:59)
+      round_date(ymd_hms(timestamp, tz = "UTC"), "1 minute") ## round timestamps to nearest minute
+    )
+  ) %>%
+  slice(60:70)
+
+room_occupancy_events <- room_occupancies_raw %>%
+  mutate(
+    timestamp = paste0(date, timestamp),
+    timestamp = if_else(
+      hour(timestamp) == 23 & minute(timestamp) == 59,
+      floor_date(ymd_hms(timestamp, tz = "UTC"), "1 minute"), ## round DOWN (because it's an 23:59)
+      round_date(ymd_hms(timestamp, tz = "UTC"), "1 minute") ## round timestamps to nearest minute
+    )
   ) %>%
   bind_rows(sensor_day_unoccupied_starts) %>% ## add in the dummy "Unoccupied" rows to start each day
   arrange(sensor_id, timestamp) %>% ## sort by sensor and timestamp
@@ -51,7 +68,12 @@ room_occupancy_minutes <- room_occupancies_raw %>%
       ceiling_date(timestamp, "1 day") - minutes(1), ## THEN set next_timestamp to the last minute of the day
       next_timestamp ## OTHERWISE we gucci
     )
-  ) %>%
+  )
+
+## TODO: add filler data back
+  
+
+room_occupancy_minutes <- room_occupancy_events %>%
   mutate(
     minute = map2(timestamp, next_timestamp, seq, by = "1 min") ## take each timestamp/next timestamp pair and create a list of the minutes between them (inclusive)
   ) %>%
@@ -60,15 +82,12 @@ room_occupancy_minutes <- room_occupancies_raw %>%
 room_occupancy_minutes %>%
   summarize(count = n())
 
-zzz %>%
-  filter(next_timestamp < timestamp)
 
 
 
 low_event_sensor_days <- room_occupancies_raw %>%
   count_group(sensor_id, date) %>%
   filter(count < 5) %>%
-  mutate(date = as_date(date)) %>%
   mutate(tmp_id = paste(sensor_id, date)) %>%
   ungroup() %>%
   distinct(tmp_id) %>%
