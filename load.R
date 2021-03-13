@@ -12,9 +12,6 @@ room_occupancies_raw <- read_excel("data/source/ODFP_Meeting-Rooms.xlsm") %>%
     timestamp = x24h_time,
     occupied_status = y_enum
   ) %>%
-  filter(
-    ! occupied_status == "Filler Data"
-  ) %>%
   mutate(
     date = as_date(date)
   )
@@ -57,8 +54,6 @@ room_occupancy_events <- room_occupancies_raw %>%
       next_timestamp ## OTHERWISE we gucci
     )
   )
-
-## TODO: add filler data back
   
 
 room_occupancy_minutes <- room_occupancy_events %>%
