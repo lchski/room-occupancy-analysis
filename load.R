@@ -60,7 +60,7 @@ room_occupancy_minutes <- room_occupancy_events %>%
   mutate(
     minute = map2(timestamp, next_timestamp, seq, by = "1 min") ## take each timestamp/next timestamp pair and create a list of the minutes between them (inclusive)
   ) %>%
-  unnest(minute) ## expand that list so each minute becomes its own row
+  unnest_legacy(minute) ## expand that list so each minute becomes its own row
 
 room_occupancy_minutes %>%
   summarize(count = n())
